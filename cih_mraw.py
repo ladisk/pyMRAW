@@ -70,11 +70,11 @@ if __name__ == '__main__':
     import matplotlib.pylab as plt
 
     _,_,N,w,h,filename,_,_,_=open_CIH_file()
-    if N>50:
-        N=50
+    if N>12:
+        N=12
     mraw=open(filename+'.mraw','rb')
     mraw.seek(0,0)#find the beginning of the file
-    image_data=load_images(mraw,h,w,N)#load N=10 images
+    image_data=load_images(mraw,h,w,N)#load N images
     mraw.close()
 
     plt.matshow(image_data[:,:,0])#display data for first image
