@@ -67,7 +67,8 @@ def load_images(mraw,h,w,N):
     return np.rollaxis(images,0,3)
 
 if __name__ == '__main__':
-    import matplotlib.pylab as plt
+    from matplotlib import pyplot as plt
+    from matplotlib import animation
 
     _,_,N,w,h,filename,_,_,_=open_CIH_file()
     if N>12:
@@ -77,10 +78,12 @@ if __name__ == '__main__':
     image_data=load_images(mraw,h,w,N)#load N images
     mraw.close()
 
-    plt.matshow(image_data[:,:,0])#display data for first image
+    fig = plt.figure()
+    ax=plt.subplot()
+    ms=ax.matshow(image_data[:,:,0],cmap=plt.get_cmap('gray'),vmin=0,vmax=2**12)#display data for first image
+    def animate(i):
+        ms.set_data(image_data[:,:,i])
+        return [ms]
+    anim = animation.FuncAnimation(fig, animate,frames=N, interval=1, blit=True)
     plt.show()
-
-
-
-
 
