@@ -5,8 +5,6 @@ Author: Jaka Javh (jaka.javh@fs.uni-lj.si)
 """
 import numpy as np
 import warnings
-from tkinter import Tk
-from tkinter.filedialog import askopenfilename
 
 SUPPORTED_FILE_FORMATS = ['mraw', 'tiff']
 SUPPORTED_EFFECTIVE_BIT_SIDE = ['lower', 'higher']
@@ -121,6 +119,8 @@ def load_images(mraw, h, w, N):
     return np.rollaxis(images, 0, 3)
 
 def show_UI():
+    from tkinter import Tk
+    from tkinter.filedialog import askopenfilename
     from matplotlib import pyplot as plt
     from matplotlib import animation
 
