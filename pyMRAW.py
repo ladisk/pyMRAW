@@ -87,7 +87,7 @@ def show_UI():
     if N > 12:
         N = 12
     mraw = open(filename[:-4] + '.mraw', 'rb')
-    mraw.seek(0, 0)  # find the beginning of the file
+    #not neaded - no header# mraw.seek(0, 0)  # find the beginning of the file
     image_data = load_images(mraw, h, w, N)  # load N images
     mraw.close()
 
