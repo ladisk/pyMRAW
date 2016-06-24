@@ -64,7 +64,8 @@ def load_images(mraw, h, w, N):
     Outputs:
         images[h, w, N]
     """
-    images = np.fromfile(mraw, dtype=np.uint16, count=h * w * N).reshape(N, h, w)
+    images = np.memmap(mraw, dtype=np.uint16, mode='r', shape=(N, h, w))
+    #images=np.fromfile(mraw, dtype=np.uint16, count=h * w * N).reshape(N, h, w) # about a 1/3 slower than memmap when loading to RAM. Also memmap doesn't need to read to RAM but can read from disc when needed.
     return np.rollaxis(images, 0, 3)
 
 def show_UI():
@@ -84,11 +85,12 @@ def show_UI():
     h = cih['Image Height']
     w = cih['Image Width']
 
-    if N > 12:
-        N = 12
+    #if N > 12:
+    #    N = 12
     mraw = open(filename[:-4] + '.mraw', 'rb')
     mraw.seek(0, 0)  # find the beginning of the file
     image_data = load_images(mraw, h, w, N)  # load N images
+    #np.memmap in load_images loads enables reading an array from disc as if from RAM. If you want all the images to load on RAM imediatly use load_images(mraw, h, w, N).copy()
     mraw.close()
 
     fig = plt.figure()
