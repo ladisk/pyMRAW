@@ -1,10 +1,31 @@
+# www.ladisk.si
+#
+# pyMRAW is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# pyMRAW is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with pyMRAW.  If not, see <http://www.gnu.org/licenses/>.
 """
-This module is reads Photrons MRAW image sequences.
+This module is reads Photron MRAW image sequences.
 
-Author: Jaka Javh (jaka.javh@fs.uni-lj.si)
+Author: Jaka Javh (jaka.javh@fs.uni-lj.si), Janko Slavič (janko.slavic@fs.uni-lj.si) www.ladisk.si
+
+We developed this module while working on this publication:
+J. Javh, J. Slavič and M. Boltežar: The Subpixel Resolution of Optical-Flow-Based Modal Analysis,
+Mechanical Systems and Signal Processing, Vol. 88, p. 89–99, 2017
+ 
+If you find it useful, consider to cite us.
 """
 import numpy as np
 import warnings
+
+__version__ = '0.1'
 
 SUPPORTED_FILE_FORMATS = ['mraw', 'tiff']
 SUPPORTED_EFFECTIVE_BIT_SIDE = ['lower', 'higher']
