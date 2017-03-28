@@ -25,7 +25,7 @@ If you find it useful, consider to cite us.
 import numpy as np
 import warnings
 
-__version__ = '0.1'
+__version__ = '0.10'
 
 SUPPORTED_FILE_FORMATS = ['mraw', 'tiff']
 SUPPORTED_EFFECTIVE_BIT_SIDE = ['lower', 'higher']
