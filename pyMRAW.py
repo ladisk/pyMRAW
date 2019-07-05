@@ -55,7 +55,7 @@ def get_cih(filename):
                         cih[key] = value
 
     elif ext == '.cihx':
-        with open(filename, 'r') as f:
+        with open(filename, 'r', encoding='utf-8', errors='ignore') as f:
             lines = f.readlines()
             l0 = lines.pop(0)
             xml = '\n'.join(lines)
