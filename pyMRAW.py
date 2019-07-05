@@ -78,7 +78,7 @@ def get_cih(filename):
         }
 
     else:
-        raise Exception(f'Unsupported configuration file ({ext})!')
+        raise Exception('Unsupported configuration file ({:s})!'.format(ext))
 
     # check exceptions
     ff = cih['File Format']
