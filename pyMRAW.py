@@ -22,33 +22,63 @@ Mechanical Systems and Signal Processing, Vol. 88, p. 89–99, 2017
  
 If you find it useful, consider to cite us.
 """
+from os import path
 import numpy as np
 import warnings
+import xmltodict
 
-__version__ = '0.10'
+__version__ = '0.20'
 
 SUPPORTED_FILE_FORMATS = ['mraw', 'tiff']
 SUPPORTED_EFFECTIVE_BIT_SIDE = ['lower', 'higher']
 
-def get_cih(filename):
-    cih = dict()
 
-    # read the cif header
-    f = open(filename, 'r')
-    for line in f:
-        if line == '\n': #end of cif header
-            break
-        line_sp = line.replace('\n', '').split(' : ')
-        if len(line_sp) == 2:
-            key, value = line_sp
-            try:
-                if '.' in value:
-                    value = float(value)
-                else:
-                    value = int(value)
-                cih[key] = value
-            except:
-                cih[key] = value
+def get_cih(filename):
+    name, ext = path.splitext(filename)
+    if ext == '.cih':
+        cih = dict()
+        # read the cif header
+        with open(filename, 'r') as f:
+            for line in f:
+                if line == '\n': #end of cif header
+                    break
+                line_sp = line.replace('\n', '').split(' : ')
+                if len(line_sp) == 2:
+                    key, value = line_sp
+                    try:
+                        if '.' in value:
+                            value = float(value)
+                        else:
+                            value = int(value)
+                        cih[key] = value
+                    except:
+                        cih[key] = value
+
+    elif ext == '.cihx':
+        with open(filename, 'r', encoding='utf-8', errors='ignore') as f:
+            lines = f.readlines()
+            l0 = lines.pop(0)
+            xml = '\n'.join(lines)
+
+        raw_cih_dict = xmltodict.parse(xml)
+        cih = {
+            'Date': raw_cih_dict['cih']['fileInfo']['date'], 
+            'Camera Type': raw_cih_dict['cih']['deviceInfo']['deviceName'],
+            'Record Rate(fps)': float(raw_cih_dict['cih']['recordInfo']['recordRate']),
+            'Shutter Speed(s)': float(raw_cih_dict['cih']['recordInfo']['shutterSpeed']),
+            'Total Frame': int(raw_cih_dict['cih']['frameInfo']['totalFrame']),
+            'Original Total Frame': int(raw_cih_dict['cih']['frameInfo']['recordedFrame']),
+            'Image Width': int(raw_cih_dict['cih']['imageDataInfo']['resolution']['width']),
+            'Image Height': int(raw_cih_dict['cih']['imageDataInfo']['resolution']['height']),
+            'File Format': raw_cih_dict['cih']['imageFileInfo']['fileFormat'],
+            'EffectiveBit Depth': int(raw_cih_dict['cih']['imageDataInfo']['effectiveBit']['depth']),
+            'EffectiveBit Side': raw_cih_dict['cih']['imageDataInfo']['effectiveBit']['side'],
+            'Color Bit': int(raw_cih_dict['cih']['imageDataInfo']['colorInfo']['bit']),
+            'Comment Text': raw_cih_dict['cih']['basicInfo']['comment'],
+        }
+
+    else:
+        raise Exception('Unsupported configuration file ({:s})!'.format(ext))
 
     # check exceptions
     ff = cih['File Format']
@@ -74,20 +104,57 @@ def get_cih(filename):
 
     return cih
 
-def load_images(mraw, h, w, N):
+
+def load_images(mraw, h, w, N, bit=16, roll_axis=True):
     """
     loads the next N images from the binary mraw file into a numpy array.
     Inputs:
-        mraw - an opened binary .mraw file
-        h - image height
-        w - image width
-        N - number of sequential images to be loaded
+        mraw: an opened binary .mraw file
+        h: image height
+        w: image width
+        N: number of sequential images to be loaded
+        roll_axis (bool): whether to roll the first axis of the output 
+            to the back or not. Defaults to True
     Outputs:
-        images[h, w, N]
+        images: array of shape (h, w, N) if `roll_axis` is True, or (N, h, w) otherwise.
     """
-    images = np.memmap(mraw, dtype=np.uint16, mode='r', shape=(N, h, w))
+
+    if int(bit) == 16:
+        bit_dtype = np.uint16
+    elif (bit) == 16:
+        bit_dtype = np.uint8
+    else:
+        raise Exception('Only 16-bit and 8-bit files supported!')
+
+    images = np.memmap(mraw, dtype=bit_dtype, mode='r', shape=(N, h, w))
     #images=np.fromfile(mraw, dtype=np.uint16, count=h * w * N).reshape(N, h, w) # about a 1/3 slower than memmap when loading to RAM. Also memmap doesn't need to read to RAM but can read from disc when needed.
-    return np.rollaxis(images, 0, 3)
+    if roll_axis:
+        return np.rollaxis(images, 0, 3)
+    else:
+        return images
+
+
+def load_video(cih_file):
+    """
+    Loads and returns images and a cih info dict.
+    
+    Inputs:
+    cih_filename: path to .cih or .cihx file, with a .mraw file 
+        with the same name in the same folder.
+    Outputs:
+        images: image data array of shape (N, h, w)
+        cih: cih info dict.
+
+    """
+    cih = get_cih(cih_file)
+    mraw_file = path.splitext(cih_file)[0] + '.mraw'
+    N = cih['Total Frame']
+    h = cih['Image Height']
+    w = cih['Image Width']
+    bit = cih['Color Bit']
+    images = load_images(mraw_file, h, w, N, bit, roll_axis=False)
+    return images, cih
+
 
 def show_UI():
     from tkinter import Tk
@@ -98,7 +165,7 @@ def show_UI():
 
     window = Tk()  # open window
     filename = askopenfilename(parent=window, title='Select the .cih file', filetypes=[
-        ("Photron cih file", "*.cih")])  # open window to load the camera and files info
+        ("Photron cih file", "*.cih"), ("Photron cihx file", "*.cihx")])  # open window to load the camera and files info
     window.destroy()  # close the tk window
 
     cih = get_cih(filename)
@@ -108,7 +175,8 @@ def show_UI():
 
     #if N > 12:
     #    N = 12
-    mraw = open(filename[:-4] + '.mraw', 'rb')
+    name, ext = path.splitext(filename)
+    mraw = open(name + '.mraw', 'rb')
     mraw.seek(0, 0)  # find the beginning of the file
     image_data = load_images(mraw, h, w, N)  # load N images
     #np.memmap in load_images loads enables reading an array from disc as if from RAM. If you want all the images to load on RAM imediatly use load_images(mraw, h, w, N).copy()

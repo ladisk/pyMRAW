@@ -28,6 +28,15 @@ def test():
     np.testing.assert_allclose(image_data[0,0,0],1889, atol=1e-8)
 
 
+def test_cihx():
+    filename = './data/beam.cihx'
+    cih = pyMRAW.get_cih(filename)
+    N = cih['Total Frame']
+    h = cih['Image Height']
+    w = cih['Image Width']
+    mraw = pyMRAW.load_images(filename[:-5] + '.mraw', h, w, N, bit=16, roll_axis=False)
+    np.testing.assert_equal(mraw.shape, (4, 80, 1024))
+
 
 if __name__ == '__mains__':
     np.testing.run_module_suite()
