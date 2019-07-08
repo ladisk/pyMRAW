@@ -37,8 +37,8 @@ setup(name='pyMRAW',
       author_email='jaka.javh@fs.uni-lj.si,janko.slavic@fs.uni-lj.si',
       description='Module for reading Photron MRAW image sequences.',
       url='https://github.com/ladisk/pyMRAW',
-      #py_modules=['pyFRF','fft_tools'],
+      py_modules=['pyMRAW'],
       #ext_modules=[Extension('lvm_read', ['data/short.lvm'])],
       long_description=desc,
-      requires=['numpy']
+      install_requires=['numpy>=1.10.0', 'xmltodict>=0.12.0']
       )
