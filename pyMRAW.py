@@ -27,7 +27,7 @@ import numpy as np
 import warnings
 import xmltodict
 
-__version__ = '0.20'
+__version__ = '0.21'
 
 SUPPORTED_FILE_FORMATS = ['mraw', 'tiff']
 SUPPORTED_EFFECTIVE_BIT_SIDE = ['lower', 'higher']
@@ -97,8 +97,8 @@ def get_cih(filename):
     ebs = cih['EffectiveBit Side']
     if ebs.lower() not in SUPPORTED_EFFECTIVE_BIT_SIDE:
         raise Exception('Unexpected EffectiveBit Side: {:g}'.format(ebs))
-    if (cih['File Format'].lower() == 'mraw') & (cih['Color Bit'] != 16):
-        raise Exception('Not a 16bit file! Mraw only works for 16bit files.')  # or very slow
+    if (cih['File Format'].lower() == 'mraw') & (cih['Color Bit'] not in [8, 16]):
+        raise Exception('pyMRAW only works for 8-bit and 16-bit files!')
     if cih['Original Total Frame'] > cih['Total Frame']:
         warnings.warn('Clipped footage!')
 
