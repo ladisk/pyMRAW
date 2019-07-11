@@ -27,7 +27,7 @@ import numpy as np
 import warnings
 import xmltodict
 
-__version__ = '0.21'
+__version__ = '0.22'
 
 SUPPORTED_FILE_FORMATS = ['mraw', 'tiff']
 SUPPORTED_EFFECTIVE_BIT_SIDE = ['lower', 'higher']
@@ -121,7 +121,7 @@ def load_images(mraw, h, w, N, bit=16, roll_axis=True):
 
     if int(bit) == 16:
         bit_dtype = np.uint16
-    elif (bit) == 16:
+    elif int(bit) == 8:
         bit_dtype = np.uint8
     else:
         raise Exception('Only 16-bit and 8-bit files supported!')
