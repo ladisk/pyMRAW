@@ -89,8 +89,6 @@ def get_cih(filename):
     bits = cih['Color Bit']
     if bits < 12:
         warnings.warn('Not 12bit ({:g} bits)! clipped values?'.format(bits))
-    elif (bits > 12):
-        warnings.warn('Not 12bit ({:g} bits)! Values may/will be divided by /16->12bit (during operation)'.format(bits))
                 # - may cause overflow')
                 # 12-bit values are spaced over the 16bit resolution - in case of photron filming at 12bit
                 # this can be meanded by dividing images with //16
@@ -158,15 +156,15 @@ def load_video(cih_file):
     return images, cih
 
 
-def save_mraw(images, save_path, ext='mraw', info_dict={}):
+def save_mraw(images, save_path, bit_depth=16, ext='mraw', info_dict={}):
     """
-    Saves given sequence of images into a 16-bit .mraw file.
+    Saves given sequence of images into .mraw file.
 
     Inputs:
     sequence : array_like of shape (n, h, w), sequence of `n` grayscale images
         of shape (h, w) to save.
     save_path : str, path to saved file. 
-    comment: str, comment text to be saved into the .cih file.
+    bit_depth: int, bit depth of the image data. Currently supported bit depths are 8 and 16.
     ext : str, generated file extension ('mraw' or 'npy'). If set to 'mraw', it can be viewed in
         PFV. Defaults to '.mraw'.
     info_dict : dict, mraw video information to go into the .cih file. The info keys have to match
@@ -186,10 +184,26 @@ def save_mraw(images, save_path, ext='mraw', info_dict={}):
     if not path.exists(directory_path):
         os.makedirs(directory_path)
 
+    bit_depth_dtype_map = {
+        8: np.uint8,
+        16: np.uint16
+    }
+    if bit_depth not in bit_depth_dtype_map.keys():
+        raise ValueError('Currently supported bit depths are 8 and 16.')
+    
+    if bit_depth < 16:
+        effective_bit = bit_depth
+    else:
+        effective_bit = 12
+    if np.max(images) > 2**bit_depth-1:
+        raise ValueError(
+            'The input image data does not match the selected bit depth. ' +
+            'Consider normalizing the image data before saving.')
+
     # Generate .mraw file
     with open(save_path, 'wb') as file:
         for image in images:
-            image = image.astype(np.uint16)
+            image = image.astype(bit_depth_dtype_map[bit_depth])
             image.tofile(file)
     file_shape = (int(len(images)), image.shape[0], image.shape[1])
     file_format = 'MRaw'
@@ -197,19 +211,20 @@ def save_mraw(images, save_path, ext='mraw', info_dict={}):
     image_info = {'Record Rate(fps)': '{:d}'.format(1),
                 'Shutter Speed(s)': '{:.6f}'.format(1),
                 'Total Frame': '{:d}'.format(file_shape[0]),
+                'Original Total Frame': '{:d}'.format(file_shape[0]),
                 'Start Frame': '{:d}'.format(0),
                 'Image Width': '{:d}'.format(file_shape[2]),
                 'Image Height': '{:d}'.format(file_shape[1]),
                 'Color Type': 'Mono', 
-                'Color Bit': '16',
+                'Color Bit': bit_depth,
                 'File Format' : file_format,
-                'EffectiveBit Depth': '12',
+                'EffectiveBit Depth': effective_bit,
                 'Comment Text': 'Generated sequence. Modify measurement info in created .cih file if necessary.',
                 'EffectiveBit Side': 'Lower'}
 
     image_info.update(info_dict)
 
-    cih_file = save_path = '{:s}.{:s}'.format(filename, 'cih')
+    cih_file = '{:s}.{:s}'.format(filename, 'cih')
     with open(cih_file, 'w') as file:
         file.write('#Camera Information Header\n')
         for key in image_info.keys():
