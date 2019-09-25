@@ -22,12 +22,14 @@ Mechanical Systems and Signal Processing, Vol. 88, p. 89–99, 2017
  
 If you find it useful, consider to cite us.
 """
+
+import os
 from os import path
 import numpy as np
 import warnings
 import xmltodict
 
-__version__ = '0.22'
+__version__ = '0.23'
 
 SUPPORTED_FILE_FORMATS = ['mraw', 'tiff']
 SUPPORTED_EFFECTIVE_BIT_SIDE = ['lower', 'higher']
@@ -154,6 +156,66 @@ def load_video(cih_file):
     bit = cih['Color Bit']
     images = load_images(mraw_file, h, w, N, bit, roll_axis=False)
     return images, cih
+
+
+def save_mraw(images, save_path, ext='mraw', info_dict={}):
+    """
+    Saves given sequence of images into a 16-bit .mraw file.
+
+    Inputs:
+    sequence : array_like of shape (n, h, w), sequence of `n` grayscale images
+        of shape (h, w) to save.
+    save_path : str, path to saved file. 
+    comment: str, comment text to be saved into the .cih file.
+    ext : str, generated file extension ('mraw' or 'npy'). If set to 'mraw', it can be viewed in
+        PFV. Defaults to '.mraw'.
+    info_dict : dict, mraw video information to go into the .cih file. The info keys have to match
+        .cih properties descriptions exactly (example common keys: 'Record Rate(fps)', 
+        'Shutter Speed(s)', 'Comment Text' etc.).
+
+    Outputs:
+    out_file : str, path to output or .mraw (or .npy) file.
+    cih_file : str, path to generated .cih file
+    """
+
+    filename, extension = path.splitext(save_path)
+    if not extension:
+        save_path = '{:s}.{:s}'.format(filename, ext)
+
+    directory_path = path.split(save_path)[0]
+    if not path.exists(directory_path):
+        os.makedirs(directory_path)
+
+    # Generate .mraw file
+    with open(save_path, 'wb') as file:
+        for image in images:
+            image = image.astype(np.uint16)
+            image.tofile(file)
+    file_shape = (int(len(images)), image.shape[0], image.shape[1])
+    file_format = 'MRaw'
+
+    image_info = {'Record Rate(fps)': '{:d}'.format(1),
+                'Shutter Speed(s)': '{:.6f}'.format(1),
+                'Total Frame': '{:d}'.format(file_shape[0]),
+                'Start Frame': '{:d}'.format(0),
+                'Image Width': '{:d}'.format(file_shape[2]),
+                'Image Height': '{:d}'.format(file_shape[1]),
+                'Color Type': 'Mono', 
+                'Color Bit': '16',
+                'File Format' : file_format,
+                'EffectiveBit Depth': '12',
+                'Comment Text': 'Generated sequence. Modify measurement info in created .cih file if necessary.',
+                'EffectiveBit Side': 'Lower'}
+
+    image_info.update(info_dict)
+
+    cih_file = save_path = '{:s}.{:s}'.format(filename, 'cih')
+    with open(cih_file, 'w') as file:
+        file.write('#Camera Information Header\n')
+        for key in image_info.keys():
+            file.write('{:s} : {:s}\n'.format(key, str(image_info[key])))
+    
+    return save_path, cih_file
 
 
 def show_UI():
