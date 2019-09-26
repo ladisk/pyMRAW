@@ -163,7 +163,7 @@ def save_mraw(images, save_path, bit_depth=16, ext='mraw', info_dict={}):
     Inputs:
     sequence : array_like of shape (n, h, w), sequence of `n` grayscale images
         of shape (h, w) to save.
-    save_path : str, path to saved file. 
+    save_path : str, path to saved cih file. 
     bit_depth: int, bit depth of the image data. Currently supported bit depths are 8 and 16.
     ext : str, generated file extension ('mraw' or 'npy'). If set to 'mraw', it can be viewed in
         PFV. Defaults to '.mraw'.
@@ -172,13 +172,13 @@ def save_mraw(images, save_path, bit_depth=16, ext='mraw', info_dict={}):
         'Shutter Speed(s)', 'Comment Text' etc.).
 
     Outputs:
-    out_file : str, path to output or .mraw (or .npy) file.
-    cih_file : str, path to generated .cih file
+    mraw_path : str, path to output or .mraw (or .npy) file.
+    cih_path : str, path to generated .cih file
     """
 
     filename, extension = path.splitext(save_path)
-    if not extension:
-        save_path = '{:s}.{:s}'.format(filename, ext)
+    mraw_path = '{:s}.{:s}'.format(filename, ext)
+    cih_path = '{:s}.{:s}'.format(filename, '.cih')
 
     directory_path = path.split(save_path)[0]
     if not path.exists(directory_path):
@@ -201,7 +201,7 @@ def save_mraw(images, save_path, bit_depth=16, ext='mraw', info_dict={}):
             'Consider normalizing the image data before saving.')
 
     # Generate .mraw file
-    with open(save_path, 'wb') as file:
+    with open(mraw_path, 'wb') as file:
         for image in images:
             image = image.astype(bit_depth_dtype_map[bit_depth])
             image.tofile(file)
@@ -224,13 +224,13 @@ def save_mraw(images, save_path, bit_depth=16, ext='mraw', info_dict={}):
 
     image_info.update(info_dict)
 
-    cih_file = '{:s}.{:s}'.format(filename, 'cih')
-    with open(cih_file, 'w') as file:
+    cih_path = '{:s}.{:s}'.format(filename, 'cih')
+    with open(cih_path, 'w') as file:
         file.write('#Camera Information Header\n')
         for key in image_info.keys():
             file.write('{:s} : {:s}\n'.format(key, str(image_info[key])))
     
-    return save_path, cih_file
+    return mraw_path, cih_path
 
 
 def show_UI():
