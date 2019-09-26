@@ -33,9 +33,9 @@ from setuptools import setup, Extension
 from pyMRAW import __version__
 setup(name='pyMRAW',
       version=__version__,
-      author='Jaka Javh, Janko Slavič',
-      author_email='jaka.javh@fs.uni-lj.si,janko.slavic@fs.uni-lj.si',
-      description='Module for reading Photron MRAW image sequences.',
+      author='Jaka Javh, Janko Slavič, Domen Gorjup',
+      author_email='jaka.javh@fs.uni-lj.si,janko.slavic@fs.uni-lj.si, domen.gorjup@fs.uni-lj.si',
+      description='Module for reading and writing Photron MRAW image sequences.',
       url='https://github.com/ladisk/pyMRAW',
       py_modules=['pyMRAW'],
       #ext_modules=[Extension('lvm_read', ['data/short.lvm'])],

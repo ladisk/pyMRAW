@@ -29,7 +29,7 @@ import numpy as np
 import warnings
 import xmltodict
 
-__version__ = '0.23'
+__version__ = '0.3'
 
 SUPPORTED_FILE_FORMATS = ['mraw', 'tiff']
 SUPPORTED_EFFECTIVE_BIT_SIDE = ['lower', 'higher']
