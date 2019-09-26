@@ -59,8 +59,8 @@ def get_cih(filename):
     elif ext == '.cihx':
         with open(filename, 'r', encoding='utf-8', errors='ignore') as f:
             lines = f.readlines()
-            l0 = lines.pop(0)
-            xml = '\n'.join(lines)
+            first_last_line = [ i for i in range(len(lines)) if '<cih>' in lines[i] or '</cih>' in lines[i] ]
+            xml = ''.join(lines[first_last_line[0]:first_last_line[-1]+1])
 
         raw_cih_dict = xmltodict.parse(xml)
         cih = {
@@ -76,7 +76,7 @@ def get_cih(filename):
             'EffectiveBit Depth': int(raw_cih_dict['cih']['imageDataInfo']['effectiveBit']['depth']),
             'EffectiveBit Side': raw_cih_dict['cih']['imageDataInfo']['effectiveBit']['side'],
             'Color Bit': int(raw_cih_dict['cih']['imageDataInfo']['colorInfo']['bit']),
-            'Comment Text': raw_cih_dict['cih']['basicInfo']['comment'],
+            'Comment Text': raw_cih_dict['cih']['basicInfo'].get('comment', ''),
         }
 
     else:
@@ -100,7 +100,7 @@ def get_cih(filename):
     if (cih['File Format'].lower() == 'mraw') & (cih['Color Bit'] not in [8, 16]):
         raise Exception('pyMRAW only works for 8-bit and 16-bit files!')
     if cih['Original Total Frame'] > cih['Total Frame']:
-        warnings.warn('Clipped footage!')
+        warnings.warn('Clipped footage! (Total frame: {}, Original total frame: {})'.format(cih['Total Frame'], cih['Original Total Frame'] ))
 
     return cih
 
