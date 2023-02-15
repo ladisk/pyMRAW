@@ -97,8 +97,8 @@ def get_cih(filename):
     ebs = cih['EffectiveBit Side']
     if ebs.lower() not in SUPPORTED_EFFECTIVE_BIT_SIDE:
         raise Exception('Unexpected EffectiveBit Side: {:g}'.format(ebs))
-    if (cih['File Format'].lower() == 'mraw') & (cih['Color Bit'] not in [8, 16]):
-        raise Exception('pyMRAW only works for 8-bit and 16-bit files!')
+    if (cih['File Format'].lower() == 'mraw') & (cih['Color Bit'] not in [8, 12, 16]):
+        raise Exception('pyMRAW only works for 8-bit, 12-bit and 16-bit files!')
     if cih['Original Total Frame'] > cih['Total Frame']:
         warnings.warn('Clipped footage! (Total frame: {}, Original total frame: {})'.format(cih['Total Frame'], cih['Original Total Frame'] ))
 
@@ -118,15 +118,24 @@ def load_images(mraw, h, w, N, bit=16, roll_axis=True):
     Outputs:
         images: array of shape (h, w, N) if `roll_axis` is True, or (N, h, w) otherwise.
     """
+    # utility to read 12 bit images, adapted from https://stackoverflow.com/a/51967333/9173710
+    def read_uint12(data, shape):
+        data = np.memmap(data,  dtype=np.uint8)
+        fst_uint8, mid_uint8, lst_uint8 = np.reshape(data, (data.shape[0] // 3, 3)).astype(np.uint16).T
+        fst_uint12 = (fst_uint8 << 4) + (mid_uint8 >> 4)
+        snd_uint12 = ((mid_uint8 % 16) << 8) + lst_uint8
+        return np.reshape(np.concatenate((fst_uint12[:, None], snd_uint12[:, None]), axis=1), 2 * fst_uint12.shape[0]).reshape(shape)
 
     if int(bit) == 16:
-        bit_dtype = np.uint16
+        images = np.memmap(mraw, dtype=np.uint16, mode='r', shape=(N, h, w))
     elif int(bit) == 8:
-        bit_dtype = np.uint8
+        images = np.memmap(mraw, dtype=np.uint8, mode='r', shape=(N, h, w))
+    elif int(bit) == 12:
+        images = read_uint12(mraw, shape=(N, h, w))
     else:
-        raise Exception('Only 16-bit and 8-bit files supported!')
+        raise Exception(f"Unsupported bit depth: {bit}")
 
-    images = np.memmap(mraw, dtype=bit_dtype, mode='r', shape=(N, h, w))
+
     #images=np.fromfile(mraw, dtype=np.uint16, count=h * w * N).reshape(N, h, w) # about a 1/3 slower than memmap when loading to RAM. Also memmap doesn't need to read to RAM but can read from disc when needed.
     if roll_axis:
         return np.rollaxis(images, 0, 3)
