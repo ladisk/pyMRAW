@@ -40,5 +40,5 @@ setup(name='pyMRAW',
       py_modules=['pyMRAW'],
       #ext_modules=[Extension('lvm_read', ['data/short.lvm'])],
       long_description=desc,
-      install_requires=['numpy>=1.10.0', 'xmltodict>=0.12.0']
+      install_requires=['numpy>=1.10.0', 'xmltodict>=0.12.0', 'numba>=0.56.4']
       )
