@@ -51,6 +51,7 @@ def test_12bit_cihx():
     w = cih['Image Width']
     mraw = pyMRAW.load_images(filename[:-5] + '.mraw', h, w, N, bit=12, roll_axis=False)
     np.testing.assert_equal(mraw.shape, (15, 384, 384))
+    np.testing.assert_equal(mraw.dtype, np.dtype(np.uint16))
 
 
 @pytest.mark.filterwarnings('ignore')
