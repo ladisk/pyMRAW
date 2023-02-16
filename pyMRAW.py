@@ -259,10 +259,12 @@ def _read_uint12_video_prec(data, shape):
     return nb_read_uint12(data).reshape(shape)
 
 
-@nb.njit(fastmath=True, parallel=True, cache=True)
+@nb.njit(nb.uint16[::1](nb.types.Array(nb.types.uint8, 1, 'C', readonly=True)), fastmath=True, parallel=True, cache=True)
 def nb_read_uint12(data_chunk):
-  """data_chunk is a contigous 1D array of uint8 data)
-  eg.data_chunk = np.frombuffer(data_chunk, dtype=np.uint8)"""
+  """ precompiled function to efficiently covnert from 12bit packed video to 16bit video  
+  it splits 3 bytes into two 16 bit words  
+  data_chunk is a contigous 1D array of uint8 data, e.g. the 12bit video loaded as 8bit array
+  """
   
   #ensure that the data_chunk has the right length
   assert np.mod(data_chunk.shape[0],3)==0
