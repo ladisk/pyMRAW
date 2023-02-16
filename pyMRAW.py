@@ -118,20 +118,14 @@ def load_images(mraw, h, w, N, bit=16, roll_axis=True):
     Outputs:
         images: array of shape (h, w, N) if `roll_axis` is True, or (N, h, w) otherwise.
     """
-    # utility to read 12 bit images, adapted from https://stackoverflow.com/a/51967333/9173710
-    def read_uint12(data, shape):
-        data = np.memmap(data,  dtype=np.uint8)
-        fst_uint8, mid_uint8, lst_uint8 = np.reshape(data, (data.shape[0] // 3, 3)).astype(np.uint16).T
-        fst_uint12 = (fst_uint8 << 4) + (mid_uint8 >> 4)
-        snd_uint12 = ((mid_uint8 % 16) << 8) + lst_uint8
-        return np.reshape(np.concatenate((fst_uint12[:, None], snd_uint12[:, None]), axis=1), 2 * fst_uint12.shape[0]).reshape(shape)
 
     if int(bit) == 16:
         images = np.memmap(mraw, dtype=np.uint16, mode='r', shape=(N, h, w))
     elif int(bit) == 8:
         images = np.memmap(mraw, dtype=np.uint8, mode='r', shape=(N, h, w))
     elif int(bit) == 12:
-        images = read_uint12(mraw, shape=(N, h, w))
+        warnings.warn("12bit images will be loaded into memory!")
+        images = _read_uint12_video(mraw, shape=(N, h, w))
     else:
         raise Exception(f"Unsupported bit depth: {bit}")
 
@@ -240,6 +234,18 @@ def save_mraw(images, save_path, bit_depth=16, ext='mraw', info_dict={}):
             file.write('{:s} : {:s}\n'.format(key, str(image_info[key])))
     
     return mraw_path, cih_path
+
+def _read_uint12_video(data, shape):
+    """Utility function to read 12bit packed mraw files into uint16 array
+    Will store entire array in memory!
+
+    Adapted from https://stackoverflow.com/a/51967333/9173710
+    """
+    data = np.memmap(data,  dtype=np.uint8, mode="r")
+    fst_uint8, mid_uint8, lst_uint8 = np.reshape(data, (data.shape[0] // 3, 3)).astype(np.uint16).T
+    fst_uint12 = (fst_uint8 << 4) + (mid_uint8 >> 4)
+    snd_uint12 = ((mid_uint8 % 16) << 8) + lst_uint8
+    return np.reshape(np.concatenate((fst_uint12[:, None], snd_uint12[:, None]), axis=1), shape)
 
 
 def show_UI():
