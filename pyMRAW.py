@@ -26,6 +26,7 @@ If you find it useful, consider to cite us.
 import os
 from os import path
 import numpy as np
+import numba as nb
 import warnings
 import xmltodict
 
@@ -125,7 +126,8 @@ def load_images(mraw, h, w, N, bit=16, roll_axis=True):
         images = np.memmap(mraw, dtype=np.uint8, mode='r', shape=(N, h, w))
     elif int(bit) == 12:
         warnings.warn("12bit images will be loaded into memory!")
-        images = _read_uint12_video(mraw, shape=(N, h, w))
+        #images = _read_uint12_video(mraw, (N, h, w))
+        images = _read_uint12_video_prec(mraw, (N, h, w))
     else:
         raise Exception(f"Unsupported bit depth: {bit}")
 
@@ -247,6 +249,34 @@ def _read_uint12_video(data, shape):
     snd_uint12 = ((mid_uint8 % 16) << 8) + lst_uint8
     return np.reshape(np.concatenate((fst_uint12[:, None], snd_uint12[:, None]), axis=1), shape)
 
+def _read_uint12_video_prec(data, shape):
+    """Utility function to read 12bit packed mraw files into uint16 array
+    Will store entire array in memory!
+
+    Adapted from https://stackoverflow.com/a/51967333/9173710
+    """
+    data = np.memmap(data,  dtype=np.uint8, mode="r")
+    return nb_read_uint12(data).reshape(shape)
+
+
+@nb.njit(fastmath=True, parallel=True, cache=True)
+def nb_read_uint12(data_chunk):
+  """data_chunk is a contigous 1D array of uint8 data)
+  eg.data_chunk = np.frombuffer(data_chunk, dtype=np.uint8)"""
+  
+  #ensure that the data_chunk has the right length
+  assert np.mod(data_chunk.shape[0],3)==0
+  out = np.empty(data_chunk.size//3*2, dtype=np.uint16)
+
+  for i in nb.prange(data_chunk.shape[0]//3):
+    fst_uint8=np.uint16(data_chunk[i*3])
+    mid_uint8=np.uint16(data_chunk[i*3+1])
+    lst_uint8=np.uint16(data_chunk[i*3+2])
+    
+    out[i*2] =   (fst_uint8 << 4) + (mid_uint8 >> 4)
+    out[i*2+1] = ((mid_uint8 % 16) << 8) + lst_uint8
+    
+  return out
 
 def show_UI():
     from tkinter import Tk
