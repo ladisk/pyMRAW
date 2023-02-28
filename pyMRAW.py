@@ -26,6 +26,7 @@ If you find it useful, consider to cite us.
 import os
 from os import path
 import numpy as np
+import numba as nb
 import warnings
 import xmltodict
 
@@ -97,8 +98,8 @@ def get_cih(filename):
     ebs = cih['EffectiveBit Side']
     if ebs.lower() not in SUPPORTED_EFFECTIVE_BIT_SIDE:
         raise Exception('Unexpected EffectiveBit Side: {:g}'.format(ebs))
-    if (cih['File Format'].lower() == 'mraw') & (cih['Color Bit'] not in [8, 16]):
-        raise Exception('pyMRAW only works for 8-bit and 16-bit files!')
+    if (cih['File Format'].lower() == 'mraw') & (cih['Color Bit'] not in [8, 12, 16]):
+        raise Exception('pyMRAW only works for 8-bit, 12-bit and 16-bit files!')
     if cih['Original Total Frame'] > cih['Total Frame']:
         warnings.warn('Clipped footage! (Total frame: {}, Original total frame: {})'.format(cih['Total Frame'], cih['Original Total Frame'] ))
 
@@ -120,13 +121,17 @@ def load_images(mraw, h, w, N, bit=16, roll_axis=True):
     """
 
     if int(bit) == 16:
-        bit_dtype = np.uint16
+        images = np.memmap(mraw, dtype=np.uint16, mode='r', shape=(N, h, w))
     elif int(bit) == 8:
-        bit_dtype = np.uint8
+        images = np.memmap(mraw, dtype=np.uint8, mode='r', shape=(N, h, w))
+    elif int(bit) == 12:
+        warnings.warn("12bit images will be loaded into memory!")
+        #images = _read_uint12_video(mraw, (N, h, w))
+        images = _read_uint12_video_prec(mraw, (N, h, w))
     else:
-        raise Exception('Only 16-bit and 8-bit files supported!')
+        raise Exception(f"Unsupported bit depth: {bit}")
 
-    images = np.memmap(mraw, dtype=bit_dtype, mode='r', shape=(N, h, w))
+
     #images=np.fromfile(mraw, dtype=np.uint16, count=h * w * N).reshape(N, h, w) # about a 1/3 slower than memmap when loading to RAM. Also memmap doesn't need to read to RAM but can read from disc when needed.
     if roll_axis:
         return np.rollaxis(images, 0, 3)
@@ -232,6 +237,48 @@ def save_mraw(images, save_path, bit_depth=16, ext='mraw', info_dict={}):
     
     return mraw_path, cih_path
 
+def _read_uint12_video(data, shape):
+    """Utility function to read 12bit packed mraw files into uint16 array
+    Will store entire array in memory!
+
+    Adapted from https://stackoverflow.com/a/51967333/9173710
+    """
+    data = np.memmap(data,  dtype=np.uint8, mode="r")
+    fst_uint8, mid_uint8, lst_uint8 = np.reshape(data, (data.shape[0] // 3, 3)).astype(np.uint16).T
+    fst_uint12 = (fst_uint8 << 4) + (mid_uint8 >> 4)
+    snd_uint12 = ((mid_uint8 % 16) << 8) + lst_uint8
+    return np.reshape(np.concatenate((fst_uint12[:, None], snd_uint12[:, None]), axis=1), shape)
+
+def _read_uint12_video_prec(data, shape):
+    """Utility function to read 12bit packed mraw files into uint16 array
+    Will store entire array in memory!
+
+    Adapted from https://stackoverflow.com/a/51967333/9173710
+    """
+    data = np.memmap(data,  dtype=np.uint8, mode="r")
+    return nb_read_uint12(data).reshape(shape)
+
+
+@nb.njit(nb.uint16[::1](nb.types.Array(nb.types.uint8, 1, 'C', readonly=True)), fastmath=True, parallel=True, cache=True)
+def nb_read_uint12(data_chunk):
+  """ precompiled function to efficiently covnert from 12bit packed video to 16bit video  
+  it splits 3 bytes into two 16 bit words  
+  data_chunk is a contigous 1D array of uint8 data, e.g. the 12bit video loaded as 8bit array
+  """
+  
+  #ensure that the data_chunk has the right length
+  assert np.mod(data_chunk.shape[0],3)==0
+  out = np.empty(data_chunk.size//3*2, dtype=np.uint16)
+
+  for i in nb.prange(data_chunk.shape[0]//3):
+    fst_uint8=np.uint16(data_chunk[i*3])
+    mid_uint8=np.uint16(data_chunk[i*3+1])
+    lst_uint8=np.uint16(data_chunk[i*3+2])
+    
+    out[i*2] =   (fst_uint8 << 4) + (mid_uint8 >> 4)
+    out[i*2+1] = ((mid_uint8 % 16) << 8) + lst_uint8
+    
+  return out
 
 def show_UI():
     from tkinter import Tk

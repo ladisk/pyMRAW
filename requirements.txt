@@ -4,3 +4,4 @@ numpy>=1.12.0
 py>=1.4.32
 pytest>=3.0.5
 xmltodict>=0.12.0
+numba>=0.56.4

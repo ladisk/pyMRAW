@@ -42,6 +42,17 @@ def test_cihx():
     mraw = pyMRAW.load_images(filename[:-5] + '.mraw', h, w, N, bit=16, roll_axis=False)
     np.testing.assert_equal(mraw.shape, (4, 80, 1024))
 
+@pytest.mark.filterwarnings('ignore')
+def test_12bit_cihx():
+    filename = './data/ball_12bit.cihx'
+    cih = pyMRAW.get_cih(filename)
+    N = cih['Total Frame']
+    h = cih['Image Height']
+    w = cih['Image Width']
+    mraw = pyMRAW.load_images(filename[:-5] + '.mraw', h, w, N, bit=12, roll_axis=False)
+    np.testing.assert_equal(mraw.shape, (15, 384, 384))
+    np.testing.assert_equal(mraw.dtype, np.dtype(np.uint16))
+
 
 @pytest.mark.filterwarnings('ignore')
 def test_save_mraw():
