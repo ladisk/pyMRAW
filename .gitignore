@@ -96,3 +96,5 @@ ENV/
 # Rope project settings
 .ropeproject
 
+# other
+server_user_id.txt

@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pyMRAW"
+version = "0.31"
+authors = [{name = "Jaka Javh, Janko Slavič, Domen Gorjup", email = "janko.slavic@fs.uni-lj.si"}]
+maintainers = [{name = "Janko Slavič et al.", email = "janko.slavic@fs.uni-lj.si"}]
+license = "MIT"
+description = "Module for reading and writing Photron MRAW image sequences."
+readme = "readme.rst"
+keywords = ["read/write", "Photron", "mraw", "cihx", "cih"]
+requires-python = ">=3.10"
+dependencies = [
+    "colorama>=0.3.7",
+    "nose>=1.3.7",
+    "numpy>=1.12.0",
+    "py>=1.4.32",
+    "xmltodict>=0.12.0",
+    "numba>=0.56.4",
+]
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Developers',
+    'Topic :: Scientific/Engineering',
+    'Programming Language :: Python :: 3.10',
+    "License :: OSI Approved :: MIT License",
+]
+
+[project.optional-dependencies]
+dev = [
+    "sphinx",
+    "twine",
+    "wheel",
+    "build",
+    "pytest",
+    "sphinx-rtd-theme",
+    "sphinx-copybutton>=0.5.2",
+]
+
+[project.urls]
+homepage = "https://github.com/ladisk/pyMRAW"
+documentation = "https://github.com/ladisk/pyMRAW"
+source = "https://github.com/ladisk/pyMRAW"
