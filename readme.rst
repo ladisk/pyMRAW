@@ -8,14 +8,13 @@ Photron MRAW File Reader.
 
 It's main feature is the use of memory-mapped ([`np.memmap`](https://numpy.org/doc/stable/reference/generated/numpy.memmap.html)) arrays to create memory maps to locally stored raw video files and avoid loading large amounts of data into RAM. 
 
-**Warning**: to take advantage of pyMRAW's memory-mapping functionality, make sure to save MRAW files either in 8-bit or 16-bit formats, corresponding to standard data types `uint8` and `uint16`! Using pyMRAW to read 12-bit MRAW files is possible, but requires loading the complete image data into RAM to produce standard Numpy arrays.
+.. warning::
+    To take advantage of pyMRAW's memory-mapping functionality, make sure to save MRAW files either in 8-bit or 16-bit formats, corresponding to standard data types `uint8` and `uint16`! Using pyMRAW to read 12-bit MRAW files is possible, but requires loading the complete image data into RAM to produce standard Numpy arrays.
 
-To load `.mraw` - `.cihx` files, simply use the `pymraw.load_video` function:
+To load `.mraw` - `.cihx` files, simply use the `pymraw.load_video` function::
 
-```python
-import pyMRAW
-images, info = pyMRAW.load_video('data/beam.cihx')
-```
+    import pyMRAW
+    images, info = pyMRAW.load_video('data/beam.cihx')
 
 For more info, please refer to the `Showcase.ipynb` notebook.
 
