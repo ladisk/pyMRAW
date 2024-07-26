@@ -6,7 +6,7 @@ Photron MRAW File Reader.
 
 `pyMRAW` is an open-source package, enabling the efficient use of the Photron MRAW video files in Python workflows.
 
-It's main feature is the use of memory-mapped ([`np.memmap`](https://numpy.org/doc/stable/reference/generated/numpy.memmap.html)) arrays to create memory maps to locally stored raw video files and avoid loading large amounts of data into RAM. 
+It's main feature is the use of memory-mapped (`np.memmap`) arrays to create memory maps to locally stored raw video files and avoid loading large amounts of data into RAM. 
 
 .. warning::
     To take advantage of pyMRAW's memory-mapping functionality, make sure to save MRAW files either in 8-bit or 16-bit formats, corresponding to standard data types `uint8` and `uint16`! Using pyMRAW to read 12-bit MRAW files is possible, but requires loading the complete image data into RAM to produce standard Numpy arrays.
