@@ -30,7 +30,7 @@ import numba as nb
 import warnings
 import xmltodict
 
-__version__ = '0.31'
+__version__ = '0.32'
 
 SUPPORTED_FILE_FORMATS = ['mraw', 'tiff']
 SUPPORTED_EFFECTIVE_BIT_SIDE = ['lower', 'higher']

@@ -98,3 +98,4 @@ ENV/
 
 # other
 server_user_id.txt
+temp/
