@@ -87,12 +87,12 @@ def get_cih(filename):
     ff = cih['File Format']
     if ff.lower() not in SUPPORTED_FILE_FORMATS:
         raise Exception('Unexpected File Format: {:g}.'.format(ff))
-    bits = cih['Color Bit']
-    if bits < 12:
-        warnings.warn('Not 12bit ({:g} bits)! clipped values?'.format(bits))
-                # - may cause overflow')
-                # 12-bit values are spaced over the 16bit resolution - in case of photron filming at 12bit
-                # this can be meanded by dividing images with //16
+    # bits = cih['Color Bit']
+    # if bits < 12:
+    #     warnings.warn('Not 12bit ({:g} bits)! clipped values?'.format(bits))
+    #             # - may cause overflow')
+    #             # 12-bit values are spaced over the 16bit resolution - in case of photron filming at 12bit
+    #             # this can be meanded by dividing images with //16
     if cih['EffectiveBit Depth'] != 12:
         warnings.warn('Not 12bit image!')
     ebs = cih['EffectiveBit Side']
@@ -100,8 +100,8 @@ def get_cih(filename):
         raise Exception('Unexpected EffectiveBit Side: {:g}'.format(ebs))
     if (cih['File Format'].lower() == 'mraw') & (cih['Color Bit'] not in [8, 12, 16]):
         raise Exception('pyMRAW only works for 8-bit, 12-bit and 16-bit files!')
-    if cih['Original Total Frame'] > cih['Total Frame']:
-        warnings.warn('Clipped footage! (Total frame: {}, Original total frame: {})'.format(cih['Total Frame'], cih['Original Total Frame'] ))
+    # if cih['Original Total Frame'] > cih['Total Frame']:
+    #     warnings.warn('Clipped footage! (Total frame: {}, Original total frame: {})'.format(cih['Total Frame'], cih['Original Total Frame'] ))
 
     return cih
 
@@ -125,7 +125,7 @@ def load_images(mraw, h, w, N, bit=16, roll_axis=True):
     elif int(bit) == 8:
         images = np.memmap(mraw, dtype=np.uint8, mode='r', shape=(N, h, w))
     elif int(bit) == 12:
-        warnings.warn("12bit images will be loaded into memory!")
+        # warnings.warn("12bit images will be loaded into memory!")
         #images = _read_uint12_video(mraw, (N, h, w))
         images = _read_uint12_video_prec(mraw, (N, h, w))
     else:
