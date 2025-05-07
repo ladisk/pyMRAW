@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pyMRAW"
-version = "0.32"
+version = "0.32.1"
 authors = [{name = "Jaka Javh, Janko Slavič, Domen Gorjup", email = "janko.slavic@fs.uni-lj.si"}]
 maintainers = [{name = "Janko Slavič et al.", email = "janko.slavic@fs.uni-lj.si"}]
 license = "MIT"
