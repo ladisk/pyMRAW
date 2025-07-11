@@ -1,16 +1,28 @@
 [build-system]
-requires = ["hatchling"]
+requires = [
+    "hatchling",
+]
 build-backend = "hatchling.build"
 
 [project]
 name = "pyMRAW"
-version = "0.32.1"
-authors = [{name = "Jaka Javh, Janko Slavič, Domen Gorjup", email = "janko.slavic@fs.uni-lj.si"}]
-maintainers = [{name = "Janko Slavič et al.", email = "janko.slavic@fs.uni-lj.si"}]
+version = "0.33.0"
+authors = [
+    { name = "Jaka Javh, Janko Slavič, Domen Gorjup", email = "janko.slavic@fs.uni-lj.si" },
+]
+maintainers = [
+    { name = "Janko Slavič et al.", email = "janko.slavic@fs.uni-lj.si" },
+]
 license = "MIT"
 description = "Module for reading and writing Photron MRAW image sequences."
 readme = "readme.rst"
-keywords = ["read/write", "Photron", "mraw", "cihx", "cih"]
+keywords = [
+    "read/write",
+    "Photron",
+    "mraw",
+    "cihx",
+    "cih",
+]
 requires-python = ">=3.10"
 dependencies = [
     "colorama>=0.3.7",
@@ -21,10 +33,10 @@ dependencies = [
     "numba>=0.56.4",
 ]
 classifiers = [
-    'Development Status :: 5 - Production/Stable',
-    'Intended Audience :: Developers',
-    'Topic :: Scientific/Engineering',
-    'Programming Language :: Python :: 3.10',
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering",
+    "Programming Language :: Python :: 3.10",
     "License :: OSI Approved :: MIT License",
 ]
 
