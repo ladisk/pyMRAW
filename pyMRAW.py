@@ -83,26 +83,6 @@ def get_cih(filename):
     else:
         raise Exception('Unsupported configuration file ({:s})!'.format(ext))
 
-    # check exceptions
-    ff = cih['File Format']
-    if ff.lower() not in SUPPORTED_FILE_FORMATS:
-        raise Exception('Unexpected File Format: {:g}.'.format(ff))
-    # bits = cih['Color Bit']
-    # if bits < 12:
-    #     warnings.warn('Not 12bit ({:g} bits)! clipped values?'.format(bits))
-    #             # - may cause overflow')
-    #             # 12-bit values are spaced over the 16bit resolution - in case of photron filming at 12bit
-    #             # this can be meanded by dividing images with //16
-    if cih['EffectiveBit Depth'] != 12:
-        warnings.warn('Not 12bit image!')
-    ebs = cih['EffectiveBit Side']
-    if ebs.lower() not in SUPPORTED_EFFECTIVE_BIT_SIDE:
-        raise Exception('Unexpected EffectiveBit Side: {:g}'.format(ebs))
-    if (cih['File Format'].lower() == 'mraw') & (cih['Color Bit'] not in [8, 12, 16]):
-        raise Exception('pyMRAW only works for 8-bit, 12-bit and 16-bit files!')
-    # if cih['Original Total Frame'] > cih['Total Frame']:
-    #     warnings.warn('Clipped footage! (Total frame: {}, Original total frame: {})'.format(cih['Total Frame'], cih['Original Total Frame'] ))
-
     return cih
 
 
@@ -138,6 +118,26 @@ def load_images(mraw, h, w, N, bit=16, roll_axis=True):
     else:
         return images
 
+def check_exceptions(cih):
+    # check exceptions
+    ff = cih['File Format']
+    if ff.lower() not in SUPPORTED_FILE_FORMATS:
+        raise Exception('Unexpected File Format: {:g}.'.format(ff))
+    # bits = cih['Color Bit']
+    # if bits < 12:
+    #     warnings.warn('Not 12bit ({:g} bits)! clipped values?'.format(bits))
+    #             # - may cause overflow')
+    #             # 12-bit values are spaced over the 16bit resolution - in case of photron filming at 12bit
+    #             # this can be meanded by dividing images with //16
+    if cih['EffectiveBit Depth'] != 12:
+        warnings.warn('Not 12bit image!')
+    ebs = cih['EffectiveBit Side']
+    if ebs.lower() not in SUPPORTED_EFFECTIVE_BIT_SIDE:
+        raise Exception('Unexpected EffectiveBit Side: {:g}'.format(ebs))
+    if (cih['File Format'].lower() == 'mraw') & (cih['Color Bit'] not in [8, 12, 16]):
+        raise Exception('pyMRAW only works for 8-bit, 12-bit and 16-bit files!')
+    # if cih['Original Total Frame'] > cih['Total Frame']:
+    #     warnings.warn('Clipped footage! (Total frame: {}, Original total frame: {})'.format(cih['Total Frame'], cih['Original Total Frame'] ))
 
 def load_video(cih_file):
     """
@@ -152,6 +152,8 @@ def load_video(cih_file):
 
     """
     cih = get_cih(cih_file)
+    check_exceptions(cih)
+
     mraw_file = path.splitext(cih_file)[0] + '.mraw'
     N = cih['Total Frame']
     h = cih['Image Height']
@@ -293,6 +295,8 @@ def show_UI():
     window.destroy()  # close the tk window
 
     cih = get_cih(filename)
+    check_exceptions(cih)
+    
     N = cih['Total Frame']
     h = cih['Image Height']
     w = cih['Image Width']
